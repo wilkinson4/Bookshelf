@@ -29,6 +29,7 @@ namespace BookShelf.Controllers
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(HttpContext.User);
+            var authors = await _context.Authors.Where(a => a.ApplicationUserId == user.Id).ToListAsync();
             var applicationDbContext = _context.Books
                                                 .Include(b => b.User)
                                                 .Where(b => b.ApplicationUserId == user.Id);
@@ -46,6 +47,9 @@ namespace BookShelf.Controllers
             var book = await _context.Books
                 .Include(b => b.User)
                 .FirstOrDefaultAsync(m => m.Id == id);
+            book.Author = await _context.Authors
+                                .Include(a => a.User)
+                                .FirstOrDefaultAsync(a => a.Id == book.AuthorId);
             if (book == null)
             {
                 return NotFound();
@@ -92,14 +96,18 @@ namespace BookShelf.Controllers
             {
                 return NotFound();
             }
+            var user = await _userManager.GetUserAsync(HttpContext.User);
+            var viewModel = new BookEditViewModel()
+            {
+                Book = await _context.Books.FindAsync(id),
+                Authors = await _context.Authors.Where(a => a.ApplicationUserId == user.Id).ToListAsync()
 
-            var book = await _context.Books.FindAsync(id);
-            if (book == null)
+            };
+            if (viewModel.Book == null)
             {
                 return NotFound();
             }
-            ViewData["ApplicationUserId"] = new SelectList(_context.ApplicationUsers, "Id", "Id", book.ApplicationUserId);
-            return View(book);
+            return View(viewModel);
         }
 
         // POST: Books/Edit/5
@@ -107,23 +115,25 @@ namespace BookShelf.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,ISBN,Title,Genre,PublishDate,AuthorId,ApplicationUserId")] Book book)
+        public async Task<IActionResult> Edit(int id, BookCreateViewModel viewModel)
         {
-            if (id != book.Id)
+            if (id != viewModel.Book.Id)
             {
                 return NotFound();
             }
-
+            ModelState.Remove("Book.ApplicationUserId");
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(book);
+                    var user = await _userManager.GetUserAsync(HttpContext.User);
+                    viewModel.Book.ApplicationUserId = user.Id;
+                    _context.Update(viewModel.Book);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!BookExists(book.Id))
+                    if (!BookExists(viewModel.Book.Id))
                     {
                         return NotFound();
                     }
@@ -134,8 +144,7 @@ namespace BookShelf.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["ApplicationUserId"] = new SelectList(_context.ApplicationUsers, "Id", "Id", book.ApplicationUserId);
-            return View(book);
+            return View(viewModel.Book);
         }
 
         // GET: Books/Delete/5

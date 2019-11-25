@@ -26,6 +26,7 @@ namespace BookShelf.Models
         public DateTime PublishDate { get; set; }
         [Required]
         public int AuthorId { get; set; }
+        public Author Author { get; set; }
         [Required]
         public string ApplicationUserId { get; set; }
 
