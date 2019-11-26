@@ -14,5 +14,14 @@ namespace BookShelf.Data
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
         public DbSet<Book> Books { get; set; }
         public DbSet<Author> Authors { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+            builder.Entity<ApplicationUser>()
+                .HasMany(u => u.Books)
+                .WithOne(b => b.User)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
     }
 }

@@ -26,13 +26,14 @@ namespace BookShelf.Controllers
         }
 
         // GET: Authors
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string errorMessage)
         {
             var user = await _userManager.GetUserAsync(HttpContext.User);
             var applicationDbContext = _context
                                             .Authors
                                             .Include(a => a.User)
                                             .Where(a => a.ApplicationUserId == user.Id);
+            ViewBag.Error = errorMessage;
             return View(await applicationDbContext.ToListAsync());
         }
 
@@ -89,7 +90,7 @@ namespace BookShelf.Controllers
             }
 
             AuthorEditViewModel viewModel = new AuthorEditViewModel();
-                viewModel.Author = await _context.Authors.FindAsync(id);
+            viewModel.Author = await _context.Authors.FindAsync(id);
             if (viewModel.Author == null)
             {
                 return NotFound();
@@ -145,6 +146,13 @@ namespace BookShelf.Controllers
             var author = await _context.Authors
                 .Include(a => a.User)
                 .FirstOrDefaultAsync(m => m.Id == id);
+            var books = await _context.Books
+                        .Include(b => b.User)
+                        .Where(b => b.AuthorId == author.Id).ToListAsync();
+            if (books.Count > 0)
+            {
+                return RedirectToAction("Index","Authors", new { errorMessage = "Cannot Delete an Author associated with a Book" });
+            }
             if (author == null)
             {
                 return NotFound();

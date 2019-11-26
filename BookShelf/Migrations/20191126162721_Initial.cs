@@ -188,7 +188,7 @@ namespace BookShelf.Migrations
                     Genre = table.Column<string>(maxLength: 50, nullable: false),
                     PublishDate = table.Column<DateTime>(nullable: false),
                     AuthorId = table.Column<int>(nullable: false),
-                    ApplicationUserId = table.Column<string>(nullable: true)
+                    ApplicationUserId = table.Column<string>(nullable: false)
                 },
                 constraints: table =>
                 {

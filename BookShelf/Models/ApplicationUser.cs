@@ -26,5 +26,6 @@ namespace BookShelf.Models
                 return $"{FirstName} {LastName}";
             }
         }
+        public List<Book> Books { get; set; }
     }
 }

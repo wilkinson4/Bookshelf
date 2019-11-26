@@ -133,6 +133,7 @@ namespace BookShelf.Migrations
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<string>("ApplicationUserId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("AuthorId")
@@ -310,10 +311,12 @@ namespace BookShelf.Migrations
             modelBuilder.Entity("BookShelf.Models.Book", b =>
                 {
                     b.HasOne("BookShelf.Models.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("ApplicationUserId");
+                        .WithMany("Books")
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
-                    b.HasOne("BookShelf.Models.Author", null)
+                    b.HasOne("BookShelf.Models.Author", "Author")
                         .WithMany("Books")
                         .HasForeignKey("AuthorId")
                         .OnDelete(DeleteBehavior.Cascade)

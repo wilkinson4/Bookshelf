@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookShelf.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20191122202138_Initial")]
+    [Migration("20191126162721_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -135,6 +135,7 @@ namespace BookShelf.Migrations
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<string>("ApplicationUserId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("AuthorId")
@@ -312,10 +313,12 @@ namespace BookShelf.Migrations
             modelBuilder.Entity("BookShelf.Models.Book", b =>
                 {
                     b.HasOne("BookShelf.Models.ApplicationUser", "User")
-                        .WithMany()
-                        .HasForeignKey("ApplicationUserId");
+                        .WithMany("Books")
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
-                    b.HasOne("BookShelf.Models.Author", null)
+                    b.HasOne("BookShelf.Models.Author", "Author")
                         .WithMany("Books")
                         .HasForeignKey("AuthorId")
                         .OnDelete(DeleteBehavior.Cascade)
